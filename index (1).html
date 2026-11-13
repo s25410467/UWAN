@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090d1c">
+  <meta name="description" content="周心樂的個人網站與作品集">
+  <title>周心樂｜個人網站</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090d1c;
+      --panel: rgba(18, 25, 48, .82);
+      --panel-strong: #151d38;
+      --text: #f4f6ff;
+      --muted: #aab5d2;
+      --blue: #68a9ff;
+      --purple: #b18cff;
+      --line: rgba(174, 194, 255, .15);
+      --shadow: 0 18px 55px rgba(0, 0, 0, .28);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+    body {
+      margin: 0;
+      min-width: 0;
+      overflow-x: hidden;
+      background:
+        radial-gradient(ellipse at 15% 8%, rgba(69, 91, 180, .19), transparent 38%),
+        radial-gradient(ellipse at 85% 48%, rgba(126, 75, 194, .13), transparent 38%),
+        var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+      line-height: 1.7;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+    #particle-canvas {
+      position: fixed; inset: 0; width: 100%; height: 100%;
+      z-index: 0; pointer-events: none; display: block;
+    }
+    .site-header, main, footer { position: relative; z-index: 1; }
+    .site-header {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+      min-height: 82px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { font-weight: 800; letter-spacing: .08em; font-size: 1.05rem; }
+    .brand span { color: var(--blue); }
+    .menu-toggle {
+      display: inline-grid; place-items: center; gap: 5px;
+      width: 46px; height: 44px; border: 1px solid var(--line);
+      border-radius: 13px; color: var(--text); background: rgba(255,255,255,.06);
+      cursor: pointer; transition: background .2s, border-color .2s;
+    }
+    .menu-toggle:hover { background: rgba(104,169,255,.15); border-color: rgba(104,169,255,.5); }
+    .menu-toggle span { display:block; width:19px; height:2px; border-radius:3px; background:currentColor; }
+    .sidebar-overlay {
+      position: fixed; inset: 0; z-index: 19; background: rgba(3,6,16,.62);
+      opacity: 0; visibility: hidden; transition: opacity .25s, visibility .25s;
+    }
+    .sidebar-overlay.open { opacity: 1; visibility: visible; }
+    .nav-links {
+      position: fixed; z-index: 20; inset: 0 auto 0 0;
+      width: min(310px, 84vw); padding: 88px 25px 30px;
+      display: flex; flex-direction: column; gap: 9px;
+      background: rgba(13, 19, 39, .97); border-right: 1px solid var(--line);
+      box-shadow: var(--shadow); transform: translateX(-105%);
+      transition: transform .28s ease; visibility: hidden;
+    }
+    .nav-links.open { transform: translateX(0); visibility: visible; }
+    .nav-links a {
+      padding: 13px 15px; border-radius: 12px; color: var(--muted);
+      transition: color .2s, background .2s;
+    }
+    .nav-links a:hover, .nav-links a:focus-visible {
+      color: var(--text); background: rgba(104,169,255,.12); outline: none;
+    }
+    .nav-caption {
+      position: absolute; top: 29px; left: 40px; color: var(--muted);
+      font-size: .78rem; letter-spacing: .18em; text-transform: uppercase;
+    }
+    main { width: min(1120px, calc(100% - 40px)); margin: 0 auto; }
+    .hero {
+      min-height: min(690px, calc(100svh - 82px));
+      display: grid; align-content: center; padding: 88px 0 100px;
+    }
+    .eyebrow {
+      color: var(--blue); font-size: .82rem; font-weight: 750;
+      letter-spacing: .22em; text-transform: uppercase;
+    }
+    h1 {
+      max-width: 850px; margin: 16px 0 20px;
+      font-size: clamp(2.8rem, 8vw, 6.4rem); line-height: 1.12;
+      letter-spacing: -.045em; overflow-wrap: anywhere;
+    }
+    .gradient-text {
+      background: linear-gradient(100deg, #86c1ff, #c09aff 55%, #f1a9e7);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .hero-copy { max-width: 650px; color: var(--muted); font-size: clamp(1rem, 2vw, 1.18rem); }
+    .hero-actions { display:flex; flex-wrap:wrap; gap:13px; margin-top:28px; }
+    .button {
+      display:inline-flex; align-items:center; justify-content:center;
+      min-height:47px; padding: 0 20px; border-radius: 13px;
+      border:1px solid rgba(104,169,255,.4); background:rgba(104,169,255,.14);
+      color:var(--text); font-weight:700; transition: transform .2s, background .2s;
+    }
+    .button:hover { transform: translateY(-3px); background:rgba(104,169,255,.23); }
+    .button.secondary { border-color:var(--line); background:rgba(255,255,255,.045); color:var(--muted); }
+    section { padding: 62px 0; }
+    .section-heading { margin-bottom: 27px; }
+    .section-heading .eyebrow { margin:0 0 7px; }
+    h2 { margin:0; font-size:clamp(1.8rem, 4vw, 2.7rem); line-height:1.25; letter-spacing:-.025em; }
+    .section-intro { max-width:680px; color:var(--muted); margin:12px 0 0; }
+    .about-grid, .project-grid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:28px; }
+    .card {
+      min-width:0; padding:25px; border:1px solid var(--line); border-radius:20px;
+      background:linear-gradient(145deg, rgba(25,34,64,.82), rgba(14,20,40,.82));
+      box-shadow:var(--shadow); backdrop-filter:blur(12px);
+      transition:transform .22s, border-color .22s;
+    }
+    .card:hover { transform:translateY(-5px); border-color:rgba(133,174,255,.38); }
+    .card h3 { margin:0 0 10px; font-size:1.22rem; line-height:1.4; color:#fff; }
+    .card p { margin:0; color:var(--muted); }
+    .tag-list { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
+    .tag { padding:5px 10px; border-radius:999px; color:#c8d8ff; background:rgba(104,169,255,.1); font-size:.8rem; }
+    .project-grid { grid-template-columns:repeat(2, minmax(0,1fr)); }
+    .project-card { display:flex; flex-direction:column; gap:17px; }
+    .code-preview {
+      min-width:0; overflow:hidden; border:1px solid rgba(174,194,255,.13);
+      border-radius:13px; background:#080d1b;
+    }
+    .code-top { display:flex; align-items:center; gap:6px; padding:10px 12px; border-bottom:1px solid var(--line); }
+    .code-dot { width:7px; height:7px; border-radius:50%; background:#6f83ac; }
+    .code-label { margin-left:6px; color:#9eaccb; font-size:.72rem; letter-spacing:.08em; }
+    pre { margin:0; padding:14px; overflow-x:auto; color:#c9d7fa; font: .78rem/1.65 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space:pre; }
+    .code-blue { color:#83bdff; } .code-purple { color:#c5a3ff; } .code-green { color:#9ee6c0; }
+    .contact-card { display:flex; align-items:center; justify-content:space-between; gap:22px; flex-wrap:wrap; }
+    footer {
+      width:min(1120px, calc(100% - 40px)); margin:35px auto 0; padding:25px 0 35px;
+      border-top:1px solid var(--line); color:#8492b3; font-size:.88rem;
+    }
+    .reveal { opacity:0; transform:translateY(18px); transition:opacity .65s ease, transform .65s ease; }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+    @media (max-width: 760px) {
+      .site-header, main, footer { width:calc(100% - 32px); }
+      .hero { min-height: min(620px, calc(100svh - 72px)); padding:70px 0 80px; }
+      section { padding:48px 0; }
+      .about-grid, .project-grid { grid-template-columns:minmax(0,1fr); gap:20px; }
+      .card { padding:21px; }
+      .contact-card { align-items:flex-start; }
+    }
+    @media (max-width: 380px) {
+      .site-header, main, footer { width:calc(100% - 26px); }
+      .hero-actions { flex-direction:column; align-items:stretch; }
+      .button { width:100%; }
+      pre { font-size:.7rem; padding:11px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior:auto; }
+      *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
+      .reveal { opacity:1; transform:none; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particle-canvas" aria-hidden="true"></canvas>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <nav class="nav-links" id="nav-links" aria-label="主要導覽" aria-hidden="true">
+    <div class="nav-caption">Navigation</div>
+    <a href="#home">首頁 Home</a>
+    <a href="#about">關於我 About</a>
+    <a href="#projects">作品集 Projects</a>
+    <a href="#contact">聯絡方式 Contact</a>
+  </nav>
+
+  <header class="site-header">
+    <a class="brand" href="#home">周心樂<span>.</span></a>
+    <button class="menu-toggle" id="menu-toggle" type="button" aria-label="開啟導覽選單" aria-controls="nav-links" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="eyebrow">Welcome to my space</div>
+      <h1>你好，我是<br><span class="gradient-text">周心樂</span></h1>
+      <p class="hero-copy">這裡是我的個人網站，記錄想法、學習歷程與創作作品。透過設計與程式，把腦中的點子慢慢變成看得見的成果。</p>
+      <div class="hero-actions">
+        <a class="button" href="#projects">探索我的作品</a>
+        <a class="button secondary" href="#about">認識我</a>
+      </div>
+    </section>
+
+    <section id="about">
+      <div class="section-heading reveal">
+        <p class="eyebrow">About me</p>
+        <h2>關於我</h2>
+        <p class="section-intro">保持好奇、持續嘗試，讓每一次練習都成為下一次進步的起點。</p>
+      </div>
+      <div class="about-grid">
+        <article class="card reveal">
+          <h3>我的介紹</h3>
+          <p>我是周心樂，喜歡探索新事物，也對網頁設計與程式創作抱持興趣。希望透過持續學習，打造兼具美感與實用性的作品。</p>
+          <div class="tag-list"><span class="tag">好奇心</span><span class="tag">創意</span><span class="tag">持續學習</span></div>
+        </article>
+        <article class="card reveal">
+          <h3>正在探索的方向</h3>
+          <p>從 HTML、CSS 與 JavaScript 開始，練習把想法整理成清楚的介面，並逐步理解互動設計與前端開發。</p>
+          <div class="tag-list"><span class="tag">HTML</span><span class="tag">CSS</span><span class="tag">JavaScript</span><span class="tag">UI Design</span></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="projects">
+      <div class="section-heading reveal">
+        <p class="eyebrow">Selected work</p>
+        <h2>作品集</h2>
+        <p class="section-intro">以下展示一些練習方向與程式概念。程式片段為示意，可依實際專案內容延伸。</p>
+      </div>
+      <div class="project-grid">
+        <article class="card project-card reveal">
+          <div><h3>個人網站介面</h3><p>使用響應式排版建立個人首頁，讓內容在不同尺寸的裝置上都能清楚呈現。</p></div>
+          <div class="code-preview">
+            <div class="code-top"><i class="code-dot"></i><i class="code-dot"></i><i class="code-dot"></i><span class="code-label">HTML</span></div>
+            <pre><span class="code-purple">&lt;section</span> <span class="code-blue">class</span>=<span class="code-green">"hero"</span><span class="code-purple">&gt;</span>
+  <span class="code-purple">&lt;h1&gt;</span>Welcome<span class="code-purple">&lt;/h1&gt;</span>
+  <span class="code-purple">&lt;p&gt;</span>My personal space<span class="code-purple">&lt;/p&gt;</span>
+<span class="code-purple">&lt;/section&gt;</span></pre>
+          </div>
+          <div class="tag-list"><span class="tag">HTML</span><span class="tag">CSS</span><span class="tag">Responsive</span></div>
+        </article>
+        <article class="card project-card reveal">
+          <div><h3>互動按鈕效果</h3><p>透過 JavaScript 監聽使用者操作，讓網頁能即時回應點擊事件。</p></div>
+          <div class="code-preview">
+            <div class="code-top"><i class="code-dot"></i><i class="code-dot"></i><i class="code-dot"></i><span class="code-label">JavaScript</span></div>
+            <pre><span class="code-purple">const</span> button = document
+  .querySelector(<span class="code-green">'#action'</span>);
+
+button.addEventListener(
+  <span class="code-green">'click'</span>, () =&gt; {
+    console.log(<span class="code-green">'Hello!'</span>);
+  }
+);</pre>
+          </div>
+          <div class="tag-list"><span class="tag">JavaScript</span><span class="tag">Interaction</span></div>
+        </article>
+        <article class="card project-card reveal">
+          <div><h3>卡片式資訊排版</h3><p>使用 Grid 與 Flexbox 整理資訊，並透過間距與層次提升閱讀體驗。</p></div>
+          <div class="code-preview">
+            <div class="code-top"><i class="code-dot"></i><i class="code-dot"></i><i class="code-dot"></i><span class="code-label">CSS</span></div>
+            <pre><span class="code-purple">.grid</span> {
+  <span class="code-blue">display</span>: grid;
+  <span class="code-blue">grid-template-columns</span>:
+    repeat(2, minmax(0, 1fr));
+  <span class="code-blue">gap</span>: 28px;
+}</pre>
+          </div>
+          <div class="tag-list"><span class="tag">CSS Grid</span><span class="tag">Layout</span></div>
+        </article>
+        <article class="card project-card reveal">
+          <div><h3>動態粒子背景</h3><p>利用 Canvas 繪製粒子與連線，加入柔和漂移，創造有層次的科技感背景。</p></div>
+          <div class="code-preview">
+            <div class="code-top"><i class="code-dot"></i><i class="code-dot"></i><i class="code-dot"></i><span class="code-label">Canvas</span></div>
+            <pre><span class="code-purple">function</span> animate() {
+  ctx.clearRect(0, 0, width, height);
+  particles.forEach(particle =&gt; {
+    particle.x += particle.vx;
+    particle.y += particle.vy;
+    drawParticle(particle);
+  });
+  requestAnimationFrame(animate);
+}</pre>
+          </div>
+          <div class="tag-list"><span class="tag">Canvas</span><span class="tag">Animation</span></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="section-heading reveal">
+        <p class="eyebrow">Get in touch</p>
+        <h2>保持聯絡</h2>
+      </div>
+      <div class="card contact-card reveal">
+        <div><h3>謝謝你來到這裡</h3><p>歡迎交流想法、分享作品，或一起討論有趣的創作點子。</p></div>
+        <a class="button" href="mailto:hello@example.com">寄送電子郵件</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>© <span id="year"></span> 周心樂. All rights reserved.</footer>
+
+  <script>
+    // 側邊導覽
+    const menuToggle = document.getElementById('menu-toggle');
+    const navLinks = document.getElementById('nav-links');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    function setSidebar(open) {
+      navLinks.classList.toggle('open', open);
+      overlay.classList.toggle('open', open);
+      navLinks.setAttribute('aria-hidden', String(!open));
+      menuToggle.setAttribute('aria-expanded', String(open));
+      menuToggle.setAttribute('aria-label', open ? '關閉導覽選單' : '開啟導覽選單');
+      document.body.style.overflow = open ? 'hidden' : '';
+    }
+    menuToggle.addEventListener('click', () => setSidebar(!navLinks.classList.contains('open')));
+    overlay.addEventListener('click', () => setSidebar(false));
+    navLinks.querySelectorAll('a').forEach(link => link.addEventListener('click', () => setSidebar(false)));
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') setSidebar(false);
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // 進場動畫；尊重裝置的減少動態效果偏好
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const revealItems = document.querySelectorAll('.reveal');
+    if ('IntersectionObserver' in window && !reduceMotion) {
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      revealItems.forEach(item => observer.observe(item));
+    } else {
+      revealItems.forEach(item => item.classList.add('visible'));
+    }
+
+    // Canvas 粒子背景：使用獨立漂移，不施加粒子互相吸引，避免長時間聚集。
+    (() => {
+      const canvas = document.getElementById('particle-canvas');
+      const ctx = canvas.getContext('2d', { alpha: true });
+      if (!ctx) return;
+
+      let width = 0, height = 0, particles = [], frame = 0;
+      let dpr = Math.min(window.devicePixelRatio || 1, 1.7);
+      const pointer = { x: -1000, y: -1000, active: false };
+      const isTouch = window.matchMedia('(pointer: coarse)').matches;
+      const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      let staticMode = motionQuery.matches;
+
+      function particleCount() {
+        const area = width * height;
+        const density = width < 600 ? 10500 : width < 1000 ? 9500 : 8500;
+        return Math.max(55, Math.min(180, Math.floor(area / density)));
+      }
+      function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        dpr = Math.min(window.devicePixelRatio || 1, 1.7);
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const count = particleCount();
+        particles = Array.from({ length: count }, () => {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = .12 + Math.random() * .25;
+          return {
+            x: Math.random() * width, y: Math.random() * height,
+            vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+            radius: .8 + Math.random() * 1.5,
+            hue: Math.random() < .55 ? 211 : 267,
+            phase: Math.random() * Math.PI * 2,
+            drift: .08 + Math.random() * .16
+          };
+        });
+      }
+      function draw() {
+        ctx.clearRect(0, 0, width, height);
+        const linkDistance = width < 600 ? 100 : width < 1000 ? 115 : 132;
+        const linkDistanceSq = linkDistance * linkDistance;
+
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          if (!staticMode) {
+            p.phase += .012;
+            p.x += p.vx + Math.cos(p.phase) * p.drift * .12;
+            p.y += p.vy + Math.sin(p.phase * .81) * p.drift * .12;
+
+            if (p.x < -8) p.x = width + 8;
+            if (p.x > width + 8) p.x = -8;
+            if (p.y < -8) p.y = height + 8;
+            if (p.y > height + 8) p.y = -8;
+
+            // 速度輕微回復到穩定範圍，避免長期受到游標推力後失控。
+            p.vx *= .999;
+            p.vy *= .999;
+            const speed = Math.hypot(p.vx, p.vy);
+            if (speed > .58) {
+              p.vx *= .96;
+              p.vy *= .96;
+            } else if (speed < .08) {
+              const angle = Math.random() * Math.PI * 2;
+              p.vx += Math.cos(angle) * .025;
+              p.vy += Math.sin(angle) * .025;
+            }
+
+            // 桌面版滑鼠附近粒子輕微避讓；觸控裝置不綁定指標互動。
+            if (!isTouch && pointer.active) {
+              const dx = p.x - pointer.x, dy = p.y - pointer.y;
+              const distSq = dx * dx + dy * dy;
+              if (distSq > 1 && distSq < 110 * 110) {
+                const force = (1 - Math.sqrt(distSq) / 110) * .012;
+                p.vx += (dx / Math.sqrt(distSq)) * force;
+                p.vy += (dy / Math.sqrt(distSq)) * force;
+              }
+            }
+          }
+
+          const glow = staticMode ? .72 : .57 + (Math.sin(p.phase) + 1) * .1;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = p.hue === 211
+            ? `rgba(105, 177, 255, ${glow})`
+            : `rgba(185, 145, 255, ${glow})`;
+          ctx.fill();
+
+          // 每個粒子只檢查後方粒子，減少重複運算。
+          for (let j = i + 1; j < particles.length; j++) {
+            const q = particles[j];
+            const dx = p.x - q.x, dy = p.y - q.y;
+            const distSq = dx * dx + dy * dy;
+            if (distSq < linkDistanceSq) {
+              const alpha = (1 - Math.sqrt(distSq) / linkDistance) * .19;
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(q.x, q.y);
+              ctx.strokeStyle = `rgba(125, 157, 235, ${alpha})`;
+              ctx.lineWidth = .7;
+              ctx.stroke();
+            }
+          }
+        }
+        frame = requestAnimationFrame(draw);
+      }
+
+      let resizeTimer;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(resize, 120);
+      }, { passive: true });
+      window.addEventListener('pointermove', event => {
+        if (event.pointerType === 'mouse') {
+          pointer.x = event.clientX;
+          pointer.y = event.clientY;
+          pointer.active = true;
+        }
+      }, { passive: true });
+      window.addEventListener('pointerleave', () => { pointer.active = false; });
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) cancelAnimationFrame(frame);
+        else if (!staticMode) frame = requestAnimationFrame(draw);
+      });
+      motionQuery.addEventListener?.('change', event => {
+        staticMode = event.matches;
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(draw);
+      });
+      resize();
+      frame = requestAnimationFrame(draw);
+    })();
+  </script>
+</body>
+</html>
